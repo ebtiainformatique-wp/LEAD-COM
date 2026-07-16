@@ -1323,7 +1323,7 @@ h1, h2, h3, h4, h5, h6 {
 }
 
 .case-header-red {
-  background-color: var(--lead-alert-red);
+  background: linear-gradient(135deg, var(--lead-blue) 0%, var(--lead-navy) 100%);
   color: var(--lead-paper);
   padding: 16px 24px;
   position: relative;
@@ -1467,7 +1467,7 @@ h1, h2, h3, h4, h5, h6 {
 }
 
 .case-prestation-bullet {
-  color: var(--lead-alert-red);
+  color: var(--lead-blue);
   font-weight: bold;
   flex-shrink: 0;
 }
