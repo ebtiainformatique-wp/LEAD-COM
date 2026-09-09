@@ -230,16 +230,27 @@ function initScrollReveal() {
 }
 
 /**
- * 8. Contact Form Validation & Envoi (via mailto)
+ * 8. Contact Form Validation & Envoi (via API /api/contact, avec repli mailto)
  */
 function initContactForm() {
   const form = document.getElementById('lead-contact-form');
   const successMsg = document.getElementById('contact-success-msg');
   const LEAD_CONTACT_EMAIL = 'contact@lead.cm';
+  const submitBtn = form ? form.querySelector('button[type="submit"]') : null;
 
   if (!form) return;
 
-  form.addEventListener('submit', (e) => {
+  function showMessage(text, isError) {
+    successMsg.style.display = 'block';
+    successMsg.textContent = text;
+    successMsg.classList.toggle('form-error-message', Boolean(isError));
+    successMsg.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+    setTimeout(() => {
+      successMsg.style.display = 'none';
+    }, 10000);
+  }
+
+  form.addEventListener('submit', async (e) => {
     e.preventDefault();
 
     // Basic Validation
@@ -255,34 +266,44 @@ function initContactForm() {
       return;
     }
 
-    // Construction du mail pré-rempli à destination de LEAD COM
-    const mailSubject = `[Site Web] Demande — ${subject}`;
-    const bodyLines = [
-      `Nom complet : ${name}`,
-      company ? `Entreprise : ${company}` : null,
-      `Email : ${email}`,
-      phone ? `Téléphone : ${phone}` : null,
-      `Marque de service concernée : ${subject}`,
-      '',
-      'Message :',
-      message
-    ].filter(Boolean);
+    const payload = { name, company, email, phone, subject, message };
 
-    const mailtoUrl = `mailto:${LEAD_CONTACT_EMAIL}?subject=${encodeURIComponent(mailSubject)}&body=${encodeURIComponent(bodyLines.join('\n'))}`;
+    if (submitBtn) submitBtn.disabled = true;
 
-    // Ouvre le client email du visiteur avec le message pré-rempli
-    window.location.href = mailtoUrl;
+    try {
+      const response = await fetch('/api/contact', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(payload)
+      });
 
-    // Confirmation visuelle indiquant que le client mail va s'ouvrir
-    successMsg.style.display = 'block';
-    successMsg.textContent = `Merci ${name} ! Votre logiciel de messagerie va s'ouvrir avec votre demande pré-remplie à destination de ${LEAD_CONTACT_EMAIL}. Il ne vous reste qu'à cliquer sur "Envoyer".`;
+      if (!response.ok) {
+        throw new Error('Échec de la réponse serveur');
+      }
 
-    // Scroll to success message
-    successMsg.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+      showMessage(`Merci ${name} ! Votre demande a bien été envoyée à notre équipe. Nous revenons vers vous très rapidement.`, false);
+      form.reset();
+    } catch (error) {
+      // Repli : ouvre le client mail du visiteur pour ne pas perdre la demande
+      console.error('Erreur envoi formulaire de contact:', error);
 
-    // Hide success message after 10 seconds
-    setTimeout(() => {
-      successMsg.style.display = 'none';
-    }, 10000);
+      const mailSubject = `[Site Web] Demande — ${subject}`;
+      const bodyLines = [
+        `Nom complet : ${name}`,
+        company ? `Entreprise : ${company}` : null,
+        `Email : ${email}`,
+        phone ? `Téléphone : ${phone}` : null,
+        `Marque de service concernée : ${subject}`,
+        '',
+        'Message :',
+        message
+      ].filter(Boolean);
+      const mailtoUrl = `mailto:${LEAD_CONTACT_EMAIL}?subject=${encodeURIComponent(mailSubject)}&body=${encodeURIComponent(bodyLines.join('\n'))}`;
+      window.location.href = mailtoUrl;
+
+      showMessage(`L'envoi automatique a rencontré un problème. Votre logiciel de messagerie va s'ouvrir avec votre demande pré-remplie à destination de ${LEAD_CONTACT_EMAIL} — il ne vous reste qu'à cliquer sur "Envoyer".`, true);
+    } finally {
+      if (submitBtn) submitBtn.disabled = false;
+    }
   });
 }

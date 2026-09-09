@@ -295,6 +295,18 @@ h1, h2, h3, h4, h5, h6 {
   transform: translateY(-2px);
 }
 
+.btn-whatsapp {
+  background-color: #25d366;
+  color: #ffffff;
+  box-shadow: 0 4px 14px rgba(37, 211, 102, 0.3);
+}
+
+.btn-whatsapp:hover {
+  background-color: #1ebe5a;
+  box-shadow: 0 6px 20px rgba(37, 211, 102, 0.4);
+  transform: translateY(-2px);
+}
+
 .btn-secondary {
   border: 2px solid var(--lead-blue);
   color: var(--lead-blue);
@@ -1733,6 +1745,12 @@ select.form-control {
   font-size: 0.9375rem;
   text-align: center;
   animation: fade-in 0.3s ease forwards;
+}
+
+.form-success-message.form-error-message {
+  background-color: #fff3cd;
+  color: #856404;
+  border-color: #ffeeba;
 }
 
 @keyframes fade-in {
