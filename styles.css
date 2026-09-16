@@ -1459,6 +1459,25 @@ h1, h2, h3, h4, h5, h6 {
   color: var(--lead-paper);
 }
 
+.case-media--two .case-video-link {
+  height: 140px;
+}
+
+.case-video-tile {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  height: 82px;
+  background: linear-gradient(135deg, var(--lead-navy), var(--lead-blue));
+  border-radius: 4px;
+  color: var(--lead-paper);
+  transition: transform var(--transition-normal);
+}
+
+.case-video-tile:hover {
+  transform: scale(1.08);
+}
+
 .case-body {
   padding: 24px;
   display: flex;
