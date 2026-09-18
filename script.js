@@ -12,6 +12,7 @@ document.addEventListener('DOMContentLoaded', () => {
   initClientsMarquee();
   initScrollReveal();
   initContactForm();
+  initLightbox();
 });
 
 /**
@@ -305,5 +306,97 @@ function initContactForm() {
     } finally {
       if (submitBtn) submitBtn.disabled = false;
     }
+  });
+}
+
+/**
+ * 9. Lightbox Photos (navigation suivant/précédent dans les réalisations)
+ */
+function initLightbox() {
+  const groups = document.querySelectorAll('.case-media, .goodies-items-grid');
+  if (!groups.length) return;
+
+  const lightbox = document.createElement('div');
+  lightbox.className = 'lightbox';
+  lightbox.setAttribute('role', 'dialog');
+  lightbox.setAttribute('aria-modal', 'true');
+  lightbox.setAttribute('aria-hidden', 'true');
+  lightbox.innerHTML = `
+    <button type="button" class="lightbox-close" aria-label="Fermer">&times;</button>
+    <button type="button" class="lightbox-prev" aria-label="Photo précédente">&#8249;</button>
+    <img class="lightbox-img" src="" alt="">
+    <button type="button" class="lightbox-next" aria-label="Photo suivante">&#8250;</button>
+    <div class="lightbox-counter"></div>
+  `;
+  document.body.appendChild(lightbox);
+
+  const imgEl = lightbox.querySelector('.lightbox-img');
+  const counterEl = lightbox.querySelector('.lightbox-counter');
+  const closeBtn = lightbox.querySelector('.lightbox-close');
+  const prevBtn = lightbox.querySelector('.lightbox-prev');
+  const nextBtn = lightbox.querySelector('.lightbox-next');
+
+  let currentLinks = [];
+  let currentIndex = 0;
+
+  function showCurrent() {
+    const link = currentLinks[currentIndex];
+    const img = link.querySelector('img');
+    imgEl.src = link.getAttribute('href');
+    imgEl.alt = img ? img.alt : '';
+    const multiple = currentLinks.length > 1;
+    counterEl.textContent = multiple ? `${currentIndex + 1} / ${currentLinks.length}` : '';
+    prevBtn.hidden = !multiple;
+    nextBtn.hidden = !multiple;
+  }
+
+  function openLightbox(links, index) {
+    currentLinks = links;
+    currentIndex = index;
+    showCurrent();
+    lightbox.classList.add('is-open');
+    lightbox.setAttribute('aria-hidden', 'false');
+    document.body.style.overflow = 'hidden';
+  }
+
+  function closeLightbox() {
+    lightbox.classList.remove('is-open');
+    lightbox.setAttribute('aria-hidden', 'true');
+    document.body.style.overflow = '';
+  }
+
+  function showNext() {
+    currentIndex = (currentIndex + 1) % currentLinks.length;
+    showCurrent();
+  }
+
+  function showPrev() {
+    currentIndex = (currentIndex - 1 + currentLinks.length) % currentLinks.length;
+    showCurrent();
+  }
+
+  groups.forEach(group => {
+    const links = Array.from(group.querySelectorAll('a')).filter(a => a.querySelector('img'));
+    links.forEach((link, index) => {
+      link.addEventListener('click', (e) => {
+        e.preventDefault();
+        openLightbox(links, index);
+      });
+    });
+  });
+
+  closeBtn.addEventListener('click', closeLightbox);
+  nextBtn.addEventListener('click', showNext);
+  prevBtn.addEventListener('click', showPrev);
+
+  lightbox.addEventListener('click', (e) => {
+    if (e.target === lightbox) closeLightbox();
+  });
+
+  document.addEventListener('keydown', (e) => {
+    if (!lightbox.classList.contains('is-open')) return;
+    if (e.key === 'Escape') closeLightbox();
+    if (e.key === 'ArrowRight') showNext();
+    if (e.key === 'ArrowLeft') showPrev();
   });
 }
